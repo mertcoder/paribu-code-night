@@ -19,6 +19,7 @@ class HybridStrategy(BaseStrategy):
         self.model: GradientBoostingClassifier | None = None
         self._indicator_cache: dict[str, dict[str, np.ndarray]] = {}
         self.decisions_log: list[dict] = []  # per-candle predict() output
+        self._prev_autocorr: float = 0.0     # confirmation: require 2 consecutive candles above threshold
 
     # ------------------------------------------------------------------
     # Training
@@ -273,16 +274,22 @@ class HybridStrategy(BaseStrategy):
         avg_vol = np.mean(volatilities) if volatilities else 0.02
 
         # --- Regime → leverage & allocation caps ---
-        if avg_autocorr < 0.10:
+        # Entry threshold 0.115: eliminates borderline random-walk spikes (0.10-0.114)
+        # that lack true momentum. Confirmed = both current AND prev candle above threshold.
+        _ENTRY = 0.115
+        _FULL  = 0.30
+        confirmed = self._prev_autocorr >= _ENTRY and avg_autocorr >= _ENTRY
+
+        if not confirmed or avg_autocorr < _ENTRY:
             # Random walk / mean-reversion → DO NOT TRADE
             # No strategy beats cash in a random walk
             regime_max_lev = 1
             regime_alloc = 0.0
             min_score_threshold = 999.0  # effectively no trades
-        elif avg_autocorr < 0.30:
-            # Transition zone: linear interpolation 0.10→0.30
-            # alloc: 0.15 → 1.0, lev: 2 → 4, thresh: 0.04 → 0.005
-            t = (avg_autocorr - 0.10) / 0.20  # 0.0 to 1.0
+        elif avg_autocorr < _FULL:
+            # Transition zone: linear interpolation _ENTRY→_FULL
+            # alloc: 0.15 → 1.0, lev: 2 → 5, thresh: 0.04 → 0.005
+            t = (avg_autocorr - _ENTRY) / (_FULL - _ENTRY)  # 0.0 to 1.0
             regime_alloc = 0.15 + t * 0.85
             regime_max_lev = int(2 + t * 3)  # 2 → 5
             min_score_threshold = 0.04 - t * 0.035  # 0.04 → 0.005
@@ -368,6 +375,8 @@ class HybridStrategy(BaseStrategy):
                     "allocation": 0.0,
                     "leverage": 1,
                 })
+
+        self._prev_autocorr = avg_autocorr
 
         # Record candle date + every coin's decision for post-run inspection
         sample_df = next(iter(data.values()))
