@@ -1,0 +1,15 @@
+candle_index,date,opened,closed,liquidated,portfolio_value
+102,2025-08-05,metucoin-usd_train,,0,3000.0
+103,2025-08-06,metucoin-usd_train,metucoin-usd_train,0,2952.14
+108,2025-08-11,,metucoin-usd_train,0,3282.88
+109,2025-08-12,metucoin-usd_train,,0,3282.88
+111,2025-08-14,,metucoin-usd_train,0,3261.47
+113,2025-08-16,tamcoin-usd_train,,0,3261.47
+114,2025-08-17,,tamcoin-usd_train,0,3304.72
+118,2025-08-21,tamcoin-usd_train,,0,3304.72
+119,2025-08-22,,tamcoin-usd_train,0,3185.25
+266,2026-01-16,tamcoin-usd_train,,0,3185.25
+267,2026-01-17,metucoin-usd_train,tamcoin-usd_train,0,3175.27
+268,2026-01-18,,metucoin-usd_train,0,3163.57
+284,2026-02-03,kapcoin-usd_train,,0,3163.57
+285,2026-02-04,,kapcoin-usd_train,0,3207.3

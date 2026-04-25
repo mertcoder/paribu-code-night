@@ -1,0 +1,5 @@
+candle_index,date,opened,closed,liquidated,portfolio_value
+103,2027-06-27,kapcoin-usd_train,,0,3000.0
+104,2027-06-28,,kapcoin-usd_train,0,2986.04
+107,2027-07-01,metucoin-usd_train,,0,2986.04
+108,2027-07-02,,metucoin-usd_train,0,2910.94

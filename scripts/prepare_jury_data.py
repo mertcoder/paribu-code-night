@@ -34,6 +34,13 @@ COIN_PREFIXES: list[tuple[str, str]] = [
     ("kapcoin",  "kapcoin-usd_train"),
     ("metucoin", "metucoin-usd_train"),
     ("tamcoin",  "tamcoin-usd_train"),
+    # real-world coin aliases (mapped to cnlib slot names)
+    ("btc",      "kapcoin-usd_train"),
+    ("eth",      "metucoin-usd_train"),
+    ("sol",      "tamcoin-usd_train"),
+    ("bnb",      "kapcoin-usd_train"),
+    ("xrp",      "metucoin-usd_train"),
+    ("avax",     "tamcoin-usd_train"),
 ]
 
 def _resolve_coin(stem: str) -> str | None:

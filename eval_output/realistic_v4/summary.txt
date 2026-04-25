@@ -1,0 +1,16 @@
+=======================================================
+  BACKTEST RESULTS
+=======================================================
+  Initial Capital     : $    3,000.00
+  Final Portfolio     : $    2,854.33
+  Net P&L             : $     -145.67
+  Return              :      -4.8555%
+-------------------------------------------------------
+  Total Candles       :           365
+  Total Trades        :           226
+  Liquidations        :             0
+  Liquidation Loss    : $        0.00
+  Validation Errors   :             0
+  Strategy Errors     :             0
+  Failed Opens        :             0
+=======================================================
