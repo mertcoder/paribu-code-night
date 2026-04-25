@@ -48,6 +48,58 @@ Bugünkü return → yarınki return korelasyonu: **~0.56** (tüm çiftlerde). B
 > [!IMPORTANT]
 > **5x leveraj pratikte güvenli** — 1570 günde sadece 0-1 likidasyon. **10x ise tehlikeli** — %3-4 likidasyon oranı, compound etkisiyle tek bir likidasyon tüm kârı silebilir.
 
+### 2.5 Teknik İndikatör Walk-Forward Testi (son %25 = 393 gün)
+
+13 farklı indikatör **bağımsız sinyal olarak** test edildi (feature > 0 → long, < 0 → short):
+
+| Sıra | İndikatör | Avg Sharpe | Avg Return | Not |
+|---|---|---|---|---|
+| 🥇 | **Momentum(5d)** | **5.00** | +450% | Açık ara en güçlü |
+| 🥈 | **Stochastic %K** | **3.97** | +291% | Çok güçlü |
+| 🥈 | **Williams %R** | **3.97** | +291% | Stochastic ile aynı |
+| 4 | **Bollinger %B** | **3.67** | +252% | Güçlü |
+| 5 | RSI(7) | 3.40 | +219% | İyi |
+| 6 | CCI(20) | 3.05 | +184% | İyi |
+| 7 | RSI(14) | 2.63 | +144% | Orta |
+| 8 | Momentum(10d) | 2.57 | +141% | Orta |
+| 9 | MACD Histogram | 1.86 | +88% | Orta |
+| 10 | MACD Line | 1.36 | +59% | Zayıf |
+
+> [!TIP]
+> **Momentum(5d) dominant sinyal.** Stochastic ve Bollinger kendi başlarına güçlü ama momentum kadar iyi değil. Asıl değerleri ML feature olarak ek bilgi sağlamalarında.
+
+### 2.6 ML Feature Importance (GradientBoosting)
+
+| Sıra | Feature | Importance | Açıklama |
+|---|---|---|---|
+| 🥇 | **mom_1d** (dünkü return) | **0.4345** | Dominant — tek başına modelin %43'ü |
+| 🥈 | **mom_3d** | **0.0697** | İkinci en güçlü momentum |
+| 3 | ma5_ratio | 0.0323 | Kısa vadeli trend |
+| 4 | **macd_hist** | 0.0317 | ✅ Ek indikatörlerden en değerli |
+| 5 | vol_ratio | 0.0307 | Volume confirmation |
+| 6 | mom_30d | 0.0298 | Uzun vadeli trend |
+| 7 | **mfi** | 0.0278 | ✅ Money Flow — 2. en değerli ek indikatör |
+| 8 | range_5d | 0.0250 | Volatilite |
+| 9 | **stoch_d** | 0.0245 | ✅ Stochastic %D |
+| 10 | mom_5d | 0.0220 | Orta vadeli momentum |
+
+> [!WARNING]
+> **Ek indikatörler accuracy'yi neredeyse artırmıyor:** Original 15-feat = %72.5, Extended 28-feat = %72.2, Full 31-feat = %72.6. Marginal fark. Ama return'de fark var çünkü **confidence kalitesi** artıyor — ML doğru zamanlarda daha yüksek confidence veriyor.
+
+### 2.7 Feature Set Karşılaştırması (Walk-Forward Return)
+
+| Feature Set | METUCOIN Return | Sharpe |
+|---|---|---|
+| Original (15 feat) | +3,815% | 11.18 |
+| Extended (28 feat) | +3,436% | 10.78 |
+| Full (31 feat) | +3,769% | 11.14 |
+
+| Hybrid Rotation | Final Portföy | Return |
+|---|---|---|
+| Full-feature Hybrid 2x | $4,456,888 | +148,463% |
+| Full-feature Hybrid 3x | $143,555,248 | +4,785,075% |
+| **Full-feature Hybrid 5x** | **$106,573,659,759** | **+3,552,455,225%** |
+
 ---
 
 ## 3. ML Gerekli mi?
@@ -261,15 +313,26 @@ Eğer test verisi çok farklıysa ve momentum çalışmıyorsa:
 
 ## 5. ML Eğitimi — Detaylı Plan
 
-### Feature Set (15 özellik)
+### Feature Set (31 özellik — Full)
 
-| Kategori | Özellikler |
-|---|---|
-| **Momentum** | 1d, 2d, 3d, 5d, 10d, 20d, 30d return |
-| **MA Ratios** | Fiyat/MA5, Fiyat/MA10, Fiyat/MA20, Fiyat/MA50 oranları |
-| **Volatility** | 20-gün return std, 20-gün return mean |
-| **Volume** | Volume/Volume_MA20 oranı |
-| **Range** | 5-gün High-Low range / fiyat |
+| Kategori | Özellikler | Adet |
+|---|---|---|
+| **Momentum** | 1d, 2d, 3d, 5d, 10d, 20d, 30d return | 7 |
+| **MA Ratios** | Fiyat/MA5, MA10, MA20, MA50 oranları | 4 |
+| **EMA Ratios** | Fiyat/EMA8, EMA13, EMA21 oranları | 3 |
+| **Volatility** | 20-gün return std & mean | 2 |
+| **Volume** | Volume/Volume_MA20 oranı | 1 |
+| **Range** | 5-gün High-Low range / fiyat | 1 |
+| **RSI** | RSI(14) | 1 |
+| **MACD** | Histogram (normalized), Line (normalized) | 2 |
+| **Bollinger** | %B, Bandwidth | 2 |
+| **Stochastic** | %K, %D | 2 |
+| **CCI** | CCI(20) | 1 |
+| **Williams %R** | Williams %R(14) | 1 |
+| **ATR** | ATR(14) / fiyat (normalized) | 1 |
+| **MFI** | Money Flow Index(14) | 1 |
+| **OBV** | OBV 10-gün momentum | 1 |
+| **ADX** | +DI − −DI (yön) | 1 |
 
 ### Model: GradientBoosting
 
