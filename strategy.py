@@ -18,6 +18,7 @@ class HybridStrategy(BaseStrategy):
         super().__init__()
         self.model: GradientBoostingClassifier | None = None
         self._indicator_cache: dict[str, dict[str, np.ndarray]] = {}
+        self.decisions_log: list[dict] = []  # per-candle predict() output
 
     # ------------------------------------------------------------------
     # Training
@@ -368,6 +369,20 @@ class HybridStrategy(BaseStrategy):
                     "leverage": 1,
                 })
 
+        # Record candle date + every coin's decision for post-run inspection
+        sample_df = next(iter(data.values()))
+        candle_date = str(sample_df["Date"].iloc[-1]) if "Date" in sample_df.columns else ""
+        for d in decisions:
+            self.decisions_log.append({
+                "date": candle_date,
+                "coin": d["coin"],
+                "signal": d["signal"],
+                "allocation": d["allocation"],
+                "leverage": d["leverage"],
+                "regime_autocorr": round(avg_autocorr, 4),
+                "avg_vol": round(avg_vol, 5),
+            })
+
         return decisions
 
 
@@ -375,9 +390,37 @@ class HybridStrategy(BaseStrategy):
 # Run backtest
 # ======================================================================
 if __name__ == "__main__":
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(description="CNLIB HybridStrategy backtest runner")
+    parser.add_argument(
+        "--test-data-dir",
+        type=Path,
+        default=None,
+        metavar="DIR",
+        help=(
+            "Path to directory with jury parquet files "
+            "(kapcoin-usd_train.parquet, metucoin-usd_train.parquet, tamcoin-usd_train.parquet). "
+            "If omitted, backtests on the bundled training data."
+        ),
+    )
+    parser.add_argument(
+        "--capital",
+        type=float,
+        default=3000.0,
+        metavar="FLOAT",
+        help="Initial capital in USD (default: 3000.0)",
+    )
+    args = parser.parse_args()
+
     strategy = HybridStrategy()
-    strategy.get_data()
+    strategy.get_data()   # always train on bundled 4-year data
     strategy.egit()
 
-    result = backtest.run(strategy=strategy, initial_capital=3000.0)
+    result = backtest.run(
+        strategy=strategy,
+        initial_capital=args.capital,
+        data_dir=args.test_data_dir,  # None → bundled data, else jury data
+    )
     result.print_summary()
